@@ -35,7 +35,27 @@ const client = new MongoClient(uri, {
 });
 
 async function run() {
-  try {
+    try {
+      
+        const jobCollection=client.db('careerNest').collection('jobs')
+
+
+        // get all data from DB
+        app.get('/jobs', async (req, res) => {
+    const result=await jobCollection.find().toArray()
+
+           res.send(result) 
+            
+})
+
+
+
+
+
+
+
+
+
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     // Send a ping to confirm a successful connection
