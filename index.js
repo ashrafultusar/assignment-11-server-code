@@ -2,15 +2,17 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
-require("dotenv").config();
-const app = express();
-const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+require("dotenv").config();
+const port = process.env.PORT || 5000;
+const app = express();
+
+
 
 // middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173"],
+    origin: ["http://localhost:5173","https://careernestel.web.app","https://careernestel.firebaseapp.com"],
     credentials: true,
     optionsSuccessStatus: 200,
   })
@@ -21,6 +23,7 @@ app.use(cookieParser());
 // verify jwt middilware
 const verifyToken = (req, res, next) => {
   const token = req.cookies?.token;
+  console.log(token)
   if (!token) return res.status(401).send({ message: "Unauthorize access" });
 
   if (token) {
@@ -34,6 +37,8 @@ const verifyToken = (req, res, next) => {
     });
   }
 };
+
+
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hzcboi3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -65,6 +70,8 @@ async function run() {
         })
         .send({ success: true });
     });
+
+
 
     // clear token when user logout
     app.get("/logout", (req, res) => {
@@ -128,10 +135,11 @@ async function run() {
       res.send(result);
     });
 
-    // my upload job delete
-    app.delete("/job/:id", verifyToken, async (req, res) => {
 
-      
+
+    // my upload job delete
+    app.delete("/job/:id",  async (req, res) => {
+     
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await jobCollection.deleteOne(query);
@@ -139,7 +147,9 @@ async function run() {
     });
 
     // update job data on my uploaded jo
-    app.put("/job/:id", verifyToken, async (req, res) => {
+    app.put("/job/:id", async (req, res) => {
+      
+      
       const id = req.params.id;
       const jobData = req.body;
       const query = { _id: new ObjectId(id) };
@@ -156,7 +166,7 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
     // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
+    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
