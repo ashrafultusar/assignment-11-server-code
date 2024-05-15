@@ -7,12 +7,14 @@ require("dotenv").config();
 const port = process.env.PORT || 5000;
 const app = express();
 
-
-
 // middleware
 app.use(
   cors({
-    origin: ["http://localhost:5173","https://careernestel.web.app","https://careernestel.firebaseapp.com"],
+    origin: [
+      "http://localhost:5173",
+      "https://careernestel.web.app",
+      "https://careernestel.firebaseapp.com",
+    ],
     credentials: true,
     optionsSuccessStatus: 200,
   })
@@ -23,7 +25,7 @@ app.use(cookieParser());
 // verify jwt middilware
 const verifyToken = (req, res, next) => {
   const token = req.cookies?.token;
-  console.log(token)
+  console.log(token);
   if (!token) return res.status(401).send({ message: "Unauthorize access" });
 
   if (token) {
@@ -37,8 +39,6 @@ const verifyToken = (req, res, next) => {
     });
   }
 };
-
-
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.hzcboi3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`;
 
@@ -71,8 +71,6 @@ async function run() {
         .send({ success: true });
     });
 
-
-
     // clear token when user logout
     app.get("/logout", (req, res) => {
       res
@@ -86,9 +84,23 @@ async function run() {
     });
 
     // get all data from DB
-    app.get("/jobs", async (req, res) => {
-      const result = await jobCollection.find().toArray();
 
+    // app.get("/jobs", async (req, res) => {
+    //   const result = await jobCollection.find().toArray();
+
+    //   res.send(result);
+    // });
+
+    // get all data with search functionallity from DB
+    app.get("/jobs", async (req, res) => {
+      const filter = req.query;
+      const query = {};
+
+      if (filter.search) {
+        query.JobTitle = { $regex: filter.search, $options: "i" }; // 'i' makes the regex case-insensitive
+      }
+
+      const result = await jobCollection.find(query).toArray();
       res.send(result);
     });
 
@@ -107,7 +119,7 @@ async function run() {
       res.send(result);
     });
 
-    // get all data from apply database
+    // get all apply data from database
     app.get("/applyJob", async (req, res) => {
       const result = await applyCollection.find().toArray();
 
@@ -135,11 +147,8 @@ async function run() {
       res.send(result);
     });
 
-
-
     // my upload job delete
-    app.delete("/job/:id",  async (req, res) => {
-     
+    app.delete("/job/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await jobCollection.deleteOne(query);
@@ -148,8 +157,6 @@ async function run() {
 
     // update job data on my uploaded jo
     app.put("/job/:id", async (req, res) => {
-      
-      
       const id = req.params.id;
       const jobData = req.body;
       const query = { _id: new ObjectId(id) };
